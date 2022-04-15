@@ -15,6 +15,7 @@ describe("Add functions", () => {
       config: {},
       datasourceUrl: "",
       pluginType: PluginType.API,
+      pluginId: "",
       dynamicBindingPathList: [],
       name: "action1",
       bindingPaths: {},
@@ -427,6 +428,27 @@ describe("Add functions", () => {
             id: "myInterval",
           },
           type: "CLEAR_INTERVAL",
+        }),
+      ]),
+    );
+  });
+
+  it("post message to target window works", () => {
+    const message = "Hello world!";
+    const targetOrigin = "https://dev.appsmith.com/";
+
+    expect(
+      dataTreeWithFunctions.postMessageToTargetWindow(message, targetOrigin),
+    ).toBe(undefined);
+
+    expect(self.TRIGGER_COLLECTOR).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          payload: {
+            message: "Hello world!",
+            targetOrigin: "https://dev.appsmith.com/",
+          },
+          type: "POST_MESSAGE",
         }),
       ]),
     );
