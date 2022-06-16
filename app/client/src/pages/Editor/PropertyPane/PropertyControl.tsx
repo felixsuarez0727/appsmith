@@ -19,7 +19,10 @@ import {
   setWidgetDynamicProperty,
   UpdateWidgetPropertyPayload,
 } from "actions/controlActions";
-import { PropertyPaneControlConfig } from "constants/PropertyControlConstants";
+import {
+  PropertyHookUpdates,
+  PropertyPaneControlConfig,
+} from "constants/PropertyControlConstants";
 import { IPanelProps } from "@blueprintjs/core";
 import PanelPropertiesEditor from "./PanelPropertiesEditor";
 import {
@@ -198,13 +201,7 @@ const PropertyControl = memo((props: Props) => {
     propertyName: string,
     propertyValue: any,
   ): UpdateWidgetPropertyPayload | undefined => {
-    let propertiesToUpdate:
-      | Array<{
-          propertyPath: string;
-          propertyValue: any;
-          isDynamicPropertyPath?: boolean;
-        }>
-      | undefined;
+    let propertiesToUpdate: Array<PropertyHookUpdates> | undefined;
     // To support updating multiple properties of same widget.
     if (props.updateHook) {
       propertiesToUpdate = props.updateHook(
@@ -215,10 +212,20 @@ const PropertyControl = memo((props: Props) => {
     }
     if (propertiesToUpdate) {
       const allUpdates: Record<string, unknown> = {};
+      const allDeletions: string[] = [];
       const allDynamicPropertyPathUpdate: DynamicPath[] = [];
       propertiesToUpdate.forEach(
-        ({ isDynamicPropertyPath, propertyPath, propertyValue }) => {
-          allUpdates[propertyPath] = propertyValue;
+        ({
+          isDynamicPropertyPath,
+          propertyPath,
+          propertyValue,
+          shouldDeleteProperty,
+        }) => {
+          if (shouldDeleteProperty) {
+            allDeletions.push(propertyPath);
+          } else {
+            allUpdates[propertyPath] = propertyValue;
+          }
 
           if (isDynamicPropertyPath) {
             allDynamicPropertyPathUpdate.push({
@@ -245,6 +252,7 @@ const PropertyControl = memo((props: Props) => {
         widgetId: widgetProperties.widgetId,
         updates: {
           modify: allUpdates,
+          remove: allDeletions,
         },
         dynamicUpdates: {
           dynamicPropertyPathList: allDynamicPropertyPathUpdate,
