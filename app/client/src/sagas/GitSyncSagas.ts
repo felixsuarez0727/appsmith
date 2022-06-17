@@ -5,7 +5,14 @@ import {
   ReduxActionTypes,
   ReduxActionWithCallbacks,
 } from "@appsmith/constants/ReduxActionConstants";
-import { all, call, put, select, takeLatest } from "redux-saga/effects";
+import {
+  all,
+  call,
+  put,
+  select,
+  takeLatest,
+  throttle,
+} from "redux-saga/effects";
 import GitSyncAPI, {
   MergeBranchPayload,
   MergeStatusPayload,
@@ -822,7 +829,7 @@ function* discardChanges() {
       yield put(discardChangesSuccess(response?.data));
       // yield fetchGitStatusSaga();
       const applicationId: string = yield select(getCurrentApplicationId);
-      const pageId = yield select(getCurrentPageId);
+      const pageId: string = yield select(getCurrentPageId);
       localStorage.setItem("GIT_DISCARD_CHANGES", "success");
       window.open(
         builderURL({ applicationId: applicationId, pageId: pageId }),
@@ -858,7 +865,7 @@ export default function* gitSyncSagas() {
       ReduxActionTypes.UPDATE_LOCAL_GIT_CONFIG_INIT,
       updateLocalGitConfig,
     ),
-    takeLatest(ReduxActionTypes.FETCH_GIT_STATUS_INIT, fetchGitStatusSaga),
+    throttle(5000, ReduxActionTypes.FETCH_GIT_STATUS_INIT, fetchGitStatusSaga),
     takeLatest(ReduxActionTypes.MERGE_BRANCH_INIT, mergeBranchSaga),
     takeLatest(ReduxActionTypes.FETCH_MERGE_STATUS_INIT, fetchMergeStatusSaga),
     takeLatest(ReduxActionTypes.GIT_PULL_INIT, gitPullSaga),
